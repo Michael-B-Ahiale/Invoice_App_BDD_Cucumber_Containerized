@@ -1,0 +1,51 @@
+services:
+  selenium-hub:
+    image: selenium/hub:latest
+    container_name: selenium_hub
+    ports:
+      - "4444:4444"
+      - "4442:4442"
+      - "4443:4443"
+    environment:
+      - OTEL_SDK_DISABLED=true
+
+  firefox-node:
+    image: selenium/node-firefox:latest
+    depends_on:
+      - selenium-hub
+    environment:
+      - OTEL_SDK_DISABLED=true
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+    ports:
+      - "5900:5900"
+    shm_size: '2gb'
+
+  chrome-node:
+    image: selenium/node-chrome:latest
+    depends_on:
+      - selenium-hub
+    environment:
+      - OTEL_SDK_DISABLED=true
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+    ports:
+      - "5901:5900"
+    shm_size: '2gb'
+
+  cucumber-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cucumber_test_runner
+    depends_on:
+      - selenium-hub
+      - firefox-node
+      - chrome-node
+    volumes:
+      - .:/app
+    environment:
+      - OTEL_SDK_DISABLED=true
+      - SELENIUM_REMOTE_URL=http://selenium-hub:4444/wd/hub
