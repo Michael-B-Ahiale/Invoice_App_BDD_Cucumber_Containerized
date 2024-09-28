@@ -71,6 +71,28 @@
 
     <build>
         <plugins>
+            <!-- Cucumber Reporting Plugin -->
+            <plugin>
+                <groupId>net.masterthought</groupId>
+                <artifactId>maven-cucumber-reporting</artifactId>
+                <version>5.8.2</version>
+                <executions>
+                    <execution>
+                        <id>execution</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <projectName>Invoice Test Cucumber</projectName>
+                            <outputDirectory>${project.build.directory}/cucumber-reports</outputDirectory>
+                            <jsonFiles>
+                                <param>${project.build.directory}/cucumber.json</param>
+                            </jsonFiles>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- Maven Surefire Plugin for running tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -80,6 +102,9 @@
                     <includes>
                         <include>**/runners/TestRunner.java</include>
                     </includes>
+                    <systemPropertyVariables>
+                        <cucumber.options>--plugin json:target/cucumber.json</cucumber.options>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
         </plugins>
