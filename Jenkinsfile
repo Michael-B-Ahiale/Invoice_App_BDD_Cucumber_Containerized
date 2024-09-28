@@ -8,28 +8,32 @@ pipeline {
             }
         }
 
-        stage('Build and Test') {
-            agent {
-                docker {
-                    image 'maven:3.8.4-openjdk-21'
-                    args '-v $HOME/.m2:/root/.m2'
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("my-maven-openjdk:latest")
                 }
             }
+        }
+
+        stage('Build and Test') {
             steps {
-                sh 'mvn clean install'
-                sh 'mvn test'
+                script {
+                    dockerImage.inside {
+                        sh 'mvn clean install'
+                        sh 'mvn test'
+                    }
+                }
             }
         }
 
         stage('Generate Reports') {
-            agent {
-                docker {
-                    image 'maven:3.8.4-openjdk-21'
-                    args '-v $HOME/.m2:/root/.m2'
-                }
-            }
             steps {
-                sh 'mvn verify'
+                script {
+                    dockerImage.inside {
+                        sh 'mvn verify'
+                    }
+                }
             }
         }
 
