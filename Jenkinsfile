@@ -18,7 +18,7 @@ pipeline {
             steps {
                 script {
                     // Build the Docker image and run the tests using docker-compose
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up --build --abort-on-container-exit"
+                    bat "docker-compose -f ${DOCKER_COMPOSE_FILE} up --build --abort-on-container-exit"
                 }
             }
         }
@@ -27,7 +27,7 @@ pipeline {
             steps {
                 script {
                     // Clean up the containers after the tests
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
+                    bat "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
                 }
             }
         }
@@ -39,7 +39,7 @@ pipeline {
             archiveArtifacts artifacts: '**/target/surefire-reports/*.xml', allowEmptyArchive: true
 
             // Clean up any dangling Docker images
-            sh 'docker system prune -f'
+            bat 'docker system prune -f'
         }
         failure {
             // Notify team in case of failure (optional)
