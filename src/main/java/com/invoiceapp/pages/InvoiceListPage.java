@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public class InvoiceListPage extends BasePage {
 
-    private By filterContainer = By.cssSelector(".filter-container");
+    private By filterContainer = By.cssSelector(".select-filter");
     private By filterOptions = By.cssSelector(".filter-options label");
     private By invoiceItems = By.cssSelector(".invoice-card");
     private By invoiceStatus = By.cssSelector(".invoice-card .bottom div:nth-child(2)");

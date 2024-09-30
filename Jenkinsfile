@@ -14,20 +14,11 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build and Run Tests with Docker Compose') {
             steps {
                 script {
-                    // Build the Docker image using the Dockerfile in the repo
-                    docker.build("${DOCKER_IMAGE}")
-                }
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                script {
-                    // Use docker-compose to spin up the environment and run tests
-                    sh 'docker-compose up --abort-on-container-exit'
+                    // Build the Docker image and run the tests using docker-compose
+                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up --build --abort-on-container-exit"
                 }
             }
         }
@@ -36,7 +27,7 @@ pipeline {
             steps {
                 script {
                     // Clean up the containers after the tests
-                    sh 'docker-compose down'
+                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
                 }
             }
         }
@@ -58,4 +49,3 @@ pipeline {
         }
     }
 }
-
