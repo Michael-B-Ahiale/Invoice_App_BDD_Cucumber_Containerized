@@ -16,7 +16,8 @@
 ## Command to run the tests
 #CMD ["mvn", "test"]
 
-FROM maven:3.8.7-openjdk-17
+FROM maven:3.8.7-openjdk-17-slim
+
 
 WORKDIR /app
 
