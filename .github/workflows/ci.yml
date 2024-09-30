@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test_suite:
+          - smoke
+          - regression
+          - integration
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        run: |
+          docker compose version || sudo apt-get install docker-compose
+
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Run Docker Compose
+        env:
+          CUCUMBER_OPTIONS: "--tags @${{ matrix.test_suite }}"
+        run: |
+          docker compose up --abort-on-container-exit --exit-code-from cucumber-test
+
+      - name: Stop Docker Compose
+        if: always()
+        run: docker compose down
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cucumber-reports-${{ matrix.test_suite }}
+          path: target/cucumber-reports.html
