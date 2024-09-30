@@ -32,7 +32,7 @@
 #CMD ["mvn", "test"]
 
 # Use Maven with OpenJDK 21
-FROM maven:3.8.4-openjdk-21-slim
+FROM maven
 
 # Set the working directory in the container
 WORKDIR /app
