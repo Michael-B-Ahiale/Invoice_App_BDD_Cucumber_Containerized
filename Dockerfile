@@ -10,8 +10,8 @@ COPY . .
 # Install Maven
 RUN apt-get update && apt-get install -y maven
 
-# Run Maven install to download dependencies
-RUN mvn install -DskipTests
+## Run Maven install to download dependencies
+#RUN mvn install -DskipTests
 
 # Command to run the tests
 CMD ["mvn", "test"]

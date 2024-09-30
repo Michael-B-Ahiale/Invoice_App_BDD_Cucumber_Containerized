@@ -1,82 +1,61 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'cucumber-test-runner' // Name of the Docker image
+        DOCKER_COMPOSE_FILE = 'docker-compose.yml' // Path to docker-compose.yml
+    }
+
     stages {
-        stage('Checkout') {
+        stage('Clone Repository') {
             steps {
-                checkout scm
+                // Clone the Git repository
+                git url: 'https://github.com/Michael-B-Ahiale/Invoice_App_BDD_Cucumber_Containerized.git', branch: 'main'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("my-maven-openjdk:latest")
+                    // Build the Docker image using the Dockerfile in the repo
+                    docker.build("${DOCKER_IMAGE}")
                 }
             }
         }
 
-        stage('Build and Test') {
+        stage('Run Tests') {
             steps {
                 script {
-                    dockerImage.inside {
-                        sh 'mvn clean install'
-                        sh 'mvn test'
-                    }
+                    // Use docker-compose to spin up the environment and run tests
+                    sh 'docker-compose up --abort-on-container-exit'
                 }
             }
         }
 
-        stage('Generate Reports') {
+        stage('Tear Down') {
             steps {
                 script {
-                    dockerImage.inside {
-                        sh 'mvn verify'
-                    }
+                    // Clean up the containers after the tests
+                    sh 'docker-compose down'
                 }
-            }
-        }
-
-        stage('Publish Test Results') {
-            steps {
-                junit '**/target/surefire-reports/*.xml'
-                publishHTML target: [
-                    reportName : 'HTML Report',
-                    reportDir  : 'target/cucumber-reports',
-                    reportFiles: 'index.html',
-                    keepAll    : true,
-                    alwaysLinkToLastBuild: true,
-                    allowMissing: true
-                ]
             }
         }
     }
 
     post {
         always {
+            // Archive test results (optional)
             archiveArtifacts artifacts: '**/target/surefire-reports/*.xml', allowEmptyArchive: true
-        }
-        success {
-            emailext(
-                subject: 'Build Success: ${currentBuild.fullDisplayName}',
-                body: '''<p><font color='green'>SUCCESS:</font> The build ${currentBuild.fullDisplayName} passed.</p>
-                        <p>See the attached test results and report for more details.</p>''',
-                to: 'abmike268@gmail.com',
-                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-                attachLog: true,
-                attachmentsPattern: '**/target/surefire-reports/*.xml, **/target/cucumber-reports/index.html'
-            )
+
+            // Clean up any dangling Docker images
+            sh 'docker system prune -f'
         }
         failure {
-            emailext(
-                subject: 'Build Failure: ${currentBuild.fullDisplayName}',
-                body: '''<p><font color='red'>FAILURE:</font> The build ${currentBuild.fullDisplayName} failed.</p>
-                        <p>See the attached test results and report for more details.</p>''',
-                to: 'abmike268@gmail.com',
-                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-                attachLog: true,
-                attachmentsPattern: '**/target/surefire-reports/*.xml, **/target/cucumber-reports/index.html'
-            )
+            // Notify team in case of failure (optional)
+            mail to: 'abmike268@gmail.com',
+                 subject: "Build Failed in Jenkins",
+                 body: "Build ${env.BUILD_NUMBER} failed. Check the Jenkins logs for more details."
         }
     }
 }
+
