@@ -27,10 +27,9 @@ jobs:
         run: docker compose build
 
       - name: Run Docker Compose
-        env:
-          CUCUMBER_OPTIONS: "--tags @${{ matrix.test_suite }}"
         run: |
-          docker compose up --abort-on-container-exit --exit-code-from cucumber-test
+          docker compose up --abort-on-container-exit --exit-code-from cucumber-test \
+            cucumber-test --tags @${{ matrix.test_suite }}
 
       - name: Stop Docker Compose
         if: always()
